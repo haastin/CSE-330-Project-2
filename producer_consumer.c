@@ -101,7 +101,8 @@ static int consumer(void)
 
 int init_func(void)
 {
-
+    buff->capacity = buff_size;
+    
     sema_init(&buff_mutex, 1)
     sema_init(&full, 0);
     sema_init(&empty, buff_size);
