@@ -170,7 +170,7 @@ int init_func(void)
 
 void exit_func(void)
 {
-
+    kthread_stop(producer_thread);
     kfree(producer_thread);
     producer_thread == NULL;
     int e = 0;
