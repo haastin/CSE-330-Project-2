@@ -48,8 +48,8 @@ static int tasks_so_far = 1;
 
 static int producer(void *data)
 {
-    struct task_struct *task = NULL; // where the fetched process is stored
-
+    struct task_struct *task; // where the fetched process is stored
+    printk(KERN_INFO "TESING 1");
     for_each_process(task)
     {
         if (task->cred->uid.val == uuid) // need to check if the process fetched is one that our user owns
@@ -94,6 +94,7 @@ static int producer(void *data)
             up(&full);       // decrease full amt (by signaling its semaphore) by 1
         }
     }
+    printk(KERN_INFO "TESING");
     return 0;
 }
 
@@ -147,7 +148,7 @@ static int consumer(void *data)
 
 int init_func(void)
 {
-
+    printk(KERN_INFO "TESING S");
     sema_init(&buff_mutex, 1);
     sema_init(&full, 0);
     sema_init(&empty, buffSize);
@@ -161,12 +162,13 @@ int init_func(void)
 
     if (cons > 1)
         consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL);
-        
+
     int i = 0;
     for (i = 0; i < cons; i++)
     {
         consumer_threads[i] = kthread_run(consumer, NULL, "Consumer-%d", i);
     }
+    printk(KERN_INFO "TESING S2");
     return 0;
 }
 
