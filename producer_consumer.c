@@ -162,7 +162,7 @@ int init_func(void)
     if(producer_thread == NULL){
         printk(KERN_INFO "PRODUCER IS NULL");
     }
-    if (cons > 1)
+
         consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL);
 
     int i = 0;
