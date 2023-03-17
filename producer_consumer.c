@@ -104,11 +104,11 @@ static int consumer(void *data)
     while (!kthread_should_stop())
     {
         printk(KERN_INFO "in consumer loop");
-        if (down_interruptible(&full)) // waits to acquire full; checks if anything is currently in buffer
+        if (down_interruptible(&full) || !kthread_should_stop()) // waits to acquire full; checks if anything is currently in buffer
         {
             break; // is only evaluated when a signal is received from down_interruptinble
         }
-        if (down_interruptible(&buff_mutex)) // acquire buffer
+        if (down_interruptible(&buff_mutex) || !kthread_should_stop()) // acquire buffer
         {
             break; // is only evaluated when a signal is received from down_interruptible
         }
@@ -136,7 +136,7 @@ static int consumer(void *data)
         uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
         printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %d:%d:%d", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
 
-        if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
+        if (down_interruptible(&total_time_mutex) || !kthread_should_stop()) // get a lock for total_elpased_nanosecs
         {
             break; // is only evaluated when a signal is received from down_interruptible
         }
@@ -195,7 +195,9 @@ void exit_func(void)
         int e = 0;
         for (e = 0; e < cons; e++)
         {
-            kthread_stop(consumer_threads[e]);
+            if(consumer_threads[e]){
+                kthread_stop(consumer_threads[e]);
+            }
         }
         printk(KERN_INFO "stopped consumer threads");
         kfree(consumer_threads);
