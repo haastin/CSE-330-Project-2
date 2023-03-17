@@ -171,15 +171,14 @@ int init_func(void)
 void exit_func(void)
 {
 
-    kthread_stop(producer_thread);
-    producer_thread == NULL;
     kfree(producer_thread);
+    producer_thread == NULL;
     int e = 0;
     for (e = 0; e < cons; e++)
     {
         kthread_stop(consumer_threads[e]);
+         kfree(consumer_threads[e]);
         consumer_threads[e] == NULL;
-        kfree(consumer_threads[e]);
     }
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
     uint64_t secs_elapsed = total_elapsed_nanosecs * (1, 000, 000, 000);
