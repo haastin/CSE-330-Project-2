@@ -180,16 +180,20 @@ int init_func(void)
 
 void exit_func(void)
 {
+    printk(KERN_INFO "reached exit func");
     kthread_stop(producer_thread);
     kfree(producer_thread);
     producer_thread == NULL;
+     printk(KERN_INFO "released producer thread");
     int e = 0;
     for (e = 0; e < cons; e++)
     {
         kthread_stop(consumer_threads[e]);
     }
+     printk(KERN_INFO "stopped consumer threads");
     kfree(consumer_threads);
     consumer_threads == NULL;
+     printk(KERN_INFO "released consumer threads");
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
     uint64_t secs_elapsed = total_elapsed_nanosecs * (1, 000, 000, 000);
     uint64_t hours_elapsed = secs_elapsed / 3600;
