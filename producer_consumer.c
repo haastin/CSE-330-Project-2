@@ -66,19 +66,23 @@ static int producer(void *data)
                 }
                 //insert at tail, take from tail
                 if(head != NULL){
-                struct buff_node curr_tail = tail;  // put process task_struct in buffer
-                tail->next = task;
-                tail = task;
+                struct buff_node *curr_tail = tail;  // put process task_struct in buffer
+                struct buff_node *new_buff_node = kmalloc(sizeof(struct buff_node), GFP_KERNEL);
+                tail->next = new_buff_node;
+                tail = new_buff_node;
                 tail->next = NULL;
                 tail->prev = curr_tail;
                 tail->index = curr_tail->index + 1;
                 tail->serial_no = tasks_so_far;
+                tail->fetched_task = task;
                 tasks_so_far++; //dont need a semaphore for this since only one will be accessing their critical section at a time
                 }
-                else{
-                    head-> next = NULL;
+                else{ //head should already be allocated statically
+                    head->fetched_task = task;
+                    head->next = NULL;
                     head->prev = NULL;
                     head->index = 0;
+                    head->serial_no = tasks_so_far;
                     tasks_so_far++;
                     tail = head;
                 }
@@ -114,10 +118,12 @@ static int consumer(void *data)
             if(new_tail != NULL){ //shouldnt ever need this since we check this condition with a semaphore already
                 new_tail->next = NULL;
                 tail = new_tail;
+                kfree(temp);
             }
             else{
                 head = NULL;
                 tail = head;
+                kfree(temp);
             }
             up(&buff_mutex); // release buff lock
             up(&empty);      // signal empty to make empty + 1 since we just consumed a process from buffer
@@ -168,11 +174,13 @@ void exit_func(void)
 
     kthread_stop(producer_thread);
     producer_thread == NULL;
+    kfree(producer_thread);
     int e = 0;
     for (e = 0; e < c; e++)
     {
         kthread_stop(consumer_threads[e]);
         consumer_threads[e] == NULL;
+        kfree(consumer_threads[e]);
     }
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
     uint64_t secs_elapsed = nanosecs_elapsed*1,000,000,000;
