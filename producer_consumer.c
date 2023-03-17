@@ -153,7 +153,7 @@ int init_func(void)
     sema_init(&full, 0);
     sema_init(&empty, buffSize);
     sema_init(&total_time_mutex, 1);
-
+    printk(KERN_INFO "TESING S1");
     int k = 0;
     for (k = 0; k < prod; k++)
     {
