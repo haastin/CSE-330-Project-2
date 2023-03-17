@@ -100,9 +100,10 @@ static int producer(void *data)
 
 static int consumer(void *data)
 {
+    printk(KERN_INFO "Reaches consumer thread");
     while (!kthread_should_stop())
     {
-
+        printk(KERN_INFO "in consumer loop");
         if (down_interruptible(&full)) // waits to acquire full; checks if anything is currently in buffer
         {
             break; // is only evaluated when a signal is received from down_interruptinble
@@ -111,7 +112,7 @@ static int consumer(void *data)
         {
             break; // is only evaluated when a signal is received from down_interruptible
         }
-
+        printk(KERN_INFO "in consumer made it past semaphores");
         struct buff_node *temp = tail; // remove an instance of task_struct from buffer
         struct buff_node *new_tail = tail->prev;
         if (new_tail != NULL)
@@ -186,9 +187,9 @@ void exit_func(void)
     for (e = 0; e < cons; e++)
     {
         kthread_stop(consumer_threads[e]);
-        kfree(consumer_threads[e]);
-        consumer_threads[e] == NULL;
     }
+    kfree(consumer_threads);
+    consumer_threads == NULL;
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
     uint64_t secs_elapsed = total_elapsed_nanosecs * (1, 000, 000, 000);
     uint64_t hours_elapsed = secs_elapsed / 3600;
