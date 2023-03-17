@@ -19,16 +19,20 @@ module_param(buff_size, int, 0);
 module_param(p, int, 0);
 module_param(c, int, 0);
 
-struct buffer
+struct buff_node
 {
 
-    struct task_struct *head;
-    int capacity;
+    struct task_struct *fetched_task;
+    struct buff_node *next;
+    struct buff_node *prev;
+    int index;
+    int serial_no;
 };
 
-static struct buffer *buff;
+static struct buff_node *head = tail;
+static struct buff_node *tail = head;
 
-static int total_elapsed_nanosecs = 0;
+static uint64_t total_elapsed_nanosecs = 0;
 
 // need to keep track of each thread so you can stop each one from executing when you want to exit
 static struct task_struct **consumer_threads;
@@ -40,30 +44,50 @@ static struct semaphore full;
 static struct semaphore empty;
 static struct semaphore total_time_mutex;
 
+static int tasks_so_far = 1;
+
 static int producer(void *data)
 {
-
     struct task_struct *task = NULL; // where the fetched process is stored
     for_each_process(task)
     {
         while (!kthread_should_stop())
         {
-            // need to check if the process fetched is one that our user owns
+            if (task->cred->uid.val == uid) // need to check if the process fetched is one that our user owns
+            { 
 
-            if (down_interruptible(&empty)) //acquire empty; checks if any open places left in buffer
-            {
-                break; //is only evaluated when a signal is received from down_interruptible
+                if (down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
+                {
+                    break; // is only evaluated when a signal is received from down_interruptible
+                }
+                if (down_interruptible(&buff_mutex)) // acquire buffer
+                {
+                    break; // is only evaluated when a signal is received from down_interruptible
+                }
+                //insert at tail, take from tail
+                if(head != NULL){
+                struct task_struct curr_tail = tail;  // put process task_struct in buffer
+                tail->next = task;
+                tail = task;
+                tail->next = NULL;
+                tail->prev = curr_tail;
+                tail->index = curr_tail->index + 1;
+                tail->serial_no = tasks_so_far;
+                tasks_so_far++; //dont need a semaphore for this since only one will be accessing their critical section at a time
+                }
+                else{
+                    head-> next = NULL;
+                    head->prev = NULL;
+                    head->index = 0;
+                    tasks_so_far++;
+                    tail = head;
+                }
+                printk(KERN_INFO "%d Produced Item#-%d at buffer index: %d for PID:%d", current->comm, tail->serial_no, tail->index, task_pid_nr(task));
+                // write details to kernel log, example print statement in the exit_function
+
+                up(&buff_mutex); // release lock
+                up(&full);       // decrease full amt (by signaling its semaphore) by 1
             }
-            if (down_interruptible(&buff_mutex)) //acquire buffer
-            {
-                break; //is only evaluated when a signal is received from down_interruptible
-            }
-
-            // put process task_struct in buffer
-            //write details to kernel log, example print statement in the exit_function
-
-            up(&buff_mutex); // release lock
-            up(&full); // decrease full amt (by signaling its semaphore) by 1
         }
     }
     return 0;
@@ -76,27 +100,39 @@ static int consumer(void *data)
         while (!kthread_should_stop())
         {
 
-            if (down_interruptible(&full)) //waits to acquire full; checks if anything is currently in buffer
+            if (down_interruptible(&full)) // waits to acquire full; checks if anything is currently in buffer
             {
-                break; //is only evaluated when a signal is received from down_interruptinble
+                break; // is only evaluated when a signal is received from down_interruptinble
             }
-            if (down_interruptible(&buff_mutex)) //acquire buffer 
+            if (down_interruptible(&buff_mutex)) // acquire buffer
             {
-                break; //is only evaluated when a signal is received from down_interruptible
+                break; // is only evaluated when a signal is received from down_interruptible
             }
 
-            // remove an instance of task_struct from buffer
-
-            up(&buff_mutex);// release buff lock
-            up(&empty);// signal empty to make empty + 1 since we just consumed a process from buffer
-
-            // operate on task_struct data here
+            struct task_struct *temp = tail; // remove an instance of task_struct from buffer
+            struct task_struct *new_tail = tail->prev;
+            if(new_tail != NULL){ //shouldnt ever need this since we check this condition with a semaphore already
+                new_tail->next = NULL;
+                tail = new_tail;
+            }
+            else{
+                head = NULL;
+                tail = head;
+            }
+            up(&buff_mutex); // release buff lock
+            up(&empty);      // signal empty to make empty + 1 since we just consumed a process from buffer
+            uint64_t nanosecs_elapsed = ktime_get_ns() - temp->start_time;
+            uint64_t secs_elapsed = nanosecs_elapsed*1,000,000,000;
+            uint64_t hours_elapsed = secs_elapsed/3600;
+            uint64_t minutes_elapsed = (secs_elapsed % 3600)/60;
+            uint64_t secs_elapsed = secs_elapsed - hours_elapsed*3600 - minutes_elapsed*60;
+            printk(KERN_INFO "%d Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %d:%d:%d", current->comm, temp->serial_no, temp->index, task_pid_nr(temp), hours_elapsed, minutes_elapsed, seconds_elapsed_remaining);            // operate on task_struct data here
 
             if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
             {
-                break; //is only evaluated when a signal is received from down_interruptible
+                break; // is only evaluated when a signal is received from down_interruptible
             }
-            // add elpased time to total_elapsed_time here
+            total_elapsed_nanosecs += nanosecs_elapsed; // add elpased time to total_elapsed_time here
 
             up(&total_time_mutex); // release it
         }
@@ -106,20 +142,19 @@ static int consumer(void *data)
 
 int init_func(void)
 {
-    buff->capacity = buff_size;
-    
+
     sema_init(&buff_mutex, 1);
     sema_init(&full, 0);
     sema_init(&empty, buff_size);
     sema_init(&total_time_mutex, 1);
 
-   int k = 0;
+    int k = 0;
     for (k = 0; k < p; k++)
     {
-	  producer_thread = kthread_run(producer, NULL, "Producer-1");
+        producer_thread = kthread_run(producer, NULL, "Producer-1");
     }
 
-    consumer_threads = kmalloc(c*sizeof(struct task_struct), GFP_KERNEL);
+    consumer_threads = kmalloc(c * sizeof(struct task_struct), GFP_KERNEL);
     int i = 0;
     for (i = 0; i < c; i++)
     {
@@ -132,7 +167,7 @@ void exit_func(void)
 {
 
     kthread_stop(producer_thread);
-
+    producer_thread == NULL;
     int e = 0;
     for (e = 0; e < c; e++)
     {
@@ -140,7 +175,11 @@ void exit_func(void)
         consumer_threads[e] == NULL;
     }
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
-   // printk(KERN_INFO "The total elapsed time of all processes for UID %d is %d%d:%d%d:%d%d", );
+    uint64_t secs_elapsed = nanosecs_elapsed*1,000,000,000;
+    uint64_t hours_elapsed = secs_elapsed/3600;
+    uint64_t minutes_elapsed = (secs_elapsed % 3600)/60;
+    uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed*3600 - minutes_elapsed*60;
+    printk(KERN_INFO "The total elapsed time of all processes for UID %d is %d:%d:%d", uid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
 }
 
 module_init(init_func);
