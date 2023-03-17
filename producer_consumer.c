@@ -10,14 +10,14 @@
 #include <linux/timer.h>
 #include <linux/slab.h>
 
-static int uid = 0;
-static int buff_size = 0;
-static int p = 0;
-static int c = 0;
-module_param(uid, int, 0);
-module_param(buff_size, int, 0);
-module_param(p, int, 0);
-module_param(c, int, 0);
+static int uuid = 0;
+static int buffSize = 0;
+static int prod = 0;
+static int cons = 0;
+module_param(uuid, int, 0);
+module_param(buffSize, int, 0);
+module_param(prod, int, 0);
+module_param(cons, int, 0);
 
 struct buff_node
 {
@@ -53,7 +53,7 @@ static int producer(void *data)
     {
         while (!kthread_should_stop())
         {
-            if (task->cred->uid.val == uid) // need to check if the process fetched is one that our user owns
+            if (task->cred->uuid.val == uuid) // need to check if the process fetched is one that our user owns
             {
 
                 if (down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
@@ -155,18 +155,18 @@ int init_func(void)
 
     sema_init(&buff_mutex, 1);
     sema_init(&full, 0);
-    sema_init(&empty, buff_size);
+    sema_init(&empty, buffSize);
     sema_init(&total_time_mutex, 1);
 
     int k = 0;
-    for (k = 0; k < p; k++)
+    for (k = 0; k < prod; k++)
     {
         producer_thread = kthread_run(producer, NULL, "Producer-1");
     }
 
-    consumer_threads = kmalloc(c * sizeof(struct task_struct), GFP_KERNEL);
+    consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL);
     int i = 0;
-    for (i = 0; i < c; i++)
+    for (i = 0; i < cons; i++)
     {
         consumer_threads[i] = kthread_run(consumer, NULL, "Consumer-%d", i);
     }
@@ -180,7 +180,7 @@ void exit_func(void)
     producer_thread == NULL;
     kfree(producer_thread);
     int e = 0;
-    for (e = 0; e < c; e++)
+    for (e = 0; e < cons; e++)
     {
         kthread_stop(consumer_threads[e]);
         consumer_threads[e] == NULL;
@@ -191,7 +191,7 @@ void exit_func(void)
     uint64_t hours_elapsed = secs_elapsed / 3600;
     uint64_t minutes_elapsed = (secs_elapsed % 3600) / 60;
     uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
-    printk(KERN_INFO "The total elapsed time of all processes for UID %d is %d:%d:%d", uid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
+    printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %d:%d:%d", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
 }
 
 module_init(init_func);
