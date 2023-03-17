@@ -159,7 +159,10 @@ int init_func(void)
     {
         producer_thread = kthread_run(producer, NULL, "Producer-1");
     }
-
+    if(producer_thread == NULL){
+        printk(KERN_INFO "PRODUCER IS NULL");
+        exit_func();
+    }
     if (cons > 1)
         consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL);
 
@@ -167,6 +170,10 @@ int init_func(void)
     for (i = 0; i < cons; i++)
     {
         consumer_threads[i] = kthread_run(consumer, NULL, "Consumer-%d", i);
+    }
+    if(consumer_threads[0] == NULL){
+        printk(KERN_INFO "CONSUMER IS NULL");
+        exit_func();
     }
     printk(KERN_INFO "TESING S2");
     return 0;
