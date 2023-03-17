@@ -29,8 +29,8 @@ struct buff_node
     int serial_no;
 };
 
-static struct buff_node *head = tail;
-static struct buff_node *tail = head;
+static struct buff_node *head = NULL;
+static struct buff_node *tail = NULL;
 
 static uint64_t total_elapsed_nanosecs = 0;
 
@@ -66,7 +66,7 @@ static int producer(void *data)
                 }
                 //insert at tail, take from tail
                 if(head != NULL){
-                struct task_struct curr_tail = tail;  // put process task_struct in buffer
+                struct buff_node curr_tail = tail;  // put process task_struct in buffer
                 tail->next = task;
                 tail = task;
                 tail->next = NULL;
@@ -82,7 +82,7 @@ static int producer(void *data)
                     tasks_so_far++;
                     tail = head;
                 }
-                printk(KERN_INFO "%d Produced Item#-%d at buffer index: %d for PID:%d", current->comm, tail->serial_no, tail->index, task_pid_nr(task));
+                printk(KERN_INFO "%s Produced Item#-%d at buffer index: %d for PID:%d", current->comm, tail->serial_no, tail->index, task_pid_nr(task));
                 // write details to kernel log, example print statement in the exit_function
 
                 up(&buff_mutex); // release lock
@@ -109,8 +109,8 @@ static int consumer(void *data)
                 break; // is only evaluated when a signal is received from down_interruptible
             }
 
-            struct task_struct *temp = tail; // remove an instance of task_struct from buffer
-            struct task_struct *new_tail = tail->prev;
+            struct buff_node *temp = tail; // remove an instance of task_struct from buffer
+            struct buff_node *new_tail = tail->prev;
             if(new_tail != NULL){ //shouldnt ever need this since we check this condition with a semaphore already
                 new_tail->next = NULL;
                 tail = new_tail;
@@ -126,7 +126,7 @@ static int consumer(void *data)
             uint64_t hours_elapsed = secs_elapsed/3600;
             uint64_t minutes_elapsed = (secs_elapsed % 3600)/60;
             uint64_t secs_elapsed = secs_elapsed - hours_elapsed*3600 - minutes_elapsed*60;
-            printk(KERN_INFO "%d Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %d:%d:%d", current->comm, temp->serial_no, temp->index, task_pid_nr(temp), hours_elapsed, minutes_elapsed, seconds_elapsed_remaining);            // operate on task_struct data here
+            printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %d:%d:%d", current->comm, temp->serial_no, temp->index, task_pid_nr(temp), hours_elapsed, minutes_elapsed, seconds_elapsed_remaining);            // operate on task_struct data here
 
             if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
             {
