@@ -127,12 +127,12 @@ static int consumer(void *data)
             }
             up(&buff_mutex); // release buff lock
             up(&empty);      // signal empty to make empty + 1 since we just consumed a process from buffer
-            uint64_t nanosecs_elapsed = ktime_get_ns() - temp->start_time;
-            uint64_t secs_elapsed = nanosecs_elapsed*1,000,000,000;
+            uint64_t nanosecs_elapsed = ktime_get_ns() - temp->fetched_task->start_time;
+            uint64_t secs_elapsed = nanosecs_elapsed*(1,000,000,000);
             uint64_t hours_elapsed = secs_elapsed/3600;
             uint64_t minutes_elapsed = (secs_elapsed % 3600)/60;
-            uint64_t secs_elapsed = secs_elapsed - hours_elapsed*3600 - minutes_elapsed*60;
-            printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %d:%d:%d", current->comm, temp->serial_no, temp->index, task_pid_nr(temp), hours_elapsed, minutes_elapsed, seconds_elapsed_remaining);            // operate on task_struct data here
+            uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed*3600 - minutes_elapsed*60;
+            printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %d:%d:%d", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, seconds_elapsed_remaining);            // operate on task_struct data here
 
             if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
             {
@@ -183,10 +183,10 @@ void exit_func(void)
         kfree(consumer_threads[e]);
     }
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
-    uint64_t secs_elapsed = nanosecs_elapsed*1,000,000,000;
-    uint64_t hours_elapsed = secs_elapsed/3600;
-    uint64_t minutes_elapsed = (secs_elapsed % 3600)/60;
-    uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed*3600 - minutes_elapsed*60;
+    secs_elapsed = total_elapsed_nanosecs*(1,000,000,000);
+    hours_elapsed = secs_elapsed/3600;
+    minutes_elapsed = (secs_elapsed % 3600)/60;
+    secs_elapsed_remaining = secs_elapsed - hours_elapsed*3600 - minutes_elapsed*60;
     printk(KERN_INFO "The total elapsed time of all processes for UID %d is %d:%d:%d", uid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
 }
 
