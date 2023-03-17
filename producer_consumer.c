@@ -159,7 +159,9 @@ int init_func(void)
         producer_thread = kthread_run(producer, NULL, "Producer-1");
     }
 
-    consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL);
+    if (cons > 1)
+        consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL);
+        
     int i = 0;
     for (i = 0; i < cons; i++)
     {
@@ -177,7 +179,7 @@ void exit_func(void)
     for (e = 0; e < cons; e++)
     {
         kthread_stop(consumer_threads[e]);
-         kfree(consumer_threads[e]);
+        kfree(consumer_threads[e]);
         consumer_threads[e] == NULL;
     }
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
