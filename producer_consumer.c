@@ -158,7 +158,7 @@ static int consumer(void *data)
         uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
         printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %d:%d:%d", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
 
-        if (down_interruptible(&total_time_mutex) || !kthread_should_stop()) // get a lock for total_elpased_nanosecs
+        if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
         {
             break; // is only evaluated when a signal is received from down_interruptible
         }
@@ -166,6 +166,7 @@ static int consumer(void *data)
 
         up(&total_time_mutex); // release it
     }
+    printk(KERN_INFO "LEAVING CONSUMER THREAD?");
     return 0;
 }
 
