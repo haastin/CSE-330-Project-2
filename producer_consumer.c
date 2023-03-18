@@ -61,10 +61,13 @@ static int producer(void *data)
         if (task->cred->uid.val == uuid) // need to check if the process fetched is one that our user owns
         {
 
-            if (should_stop || down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
+            if (down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
             {
                 printk(KERN_INFO "leaving producer for_each_process");
                 break; // is only evaluated when a signal is received from down_interruptible
+            }
+            if(kthread_should_stop()){
+                break;
             }
             printk(KERN_INFO "leaving producer for_each_process");
             if (kthread_should_stop() || down_interruptible(&buff_mutex)) // acquire buffer
@@ -205,11 +208,11 @@ void exit_func(void)
     if (producer_thread != NULL)
     {
         printk(KERN_INFO "inside exit producer deallocation");
-        should_stop = 1;
-        up(&empty);
-        //kthread_stop(producer_thread); 
-        //kfree(producer_thread);
-        //producer_thread == NULL;
+        //should_stop = 1;
+        kthread_stop(producer_thread);
+        up(&empty); 
+        kfree(producer_thread);
+        producer_thread == NULL;
     }
     printk(KERN_INFO "released producer thread");
     if (consumer_threads != NULL)
