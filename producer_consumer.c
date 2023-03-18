@@ -152,8 +152,8 @@ static int consumer(void *data)
         up(&buff_mutex); // release buff lock
         up(&empty);      // signal empty to make empty + 1 since we just consumed a process from buffer
         unsigned long long int nanosecs_elapsed = 0;
-        printk(KERN_INFO "%d", ktime_get_ns());
         nanosecs_elapsed = ktime_get_ns() - temp->fetched_task->start_time;
+         printk(KERN_INFO "nanosecs elapsed: %d", nanosecs_elapsed);
         unsigned long long int secs_elapsed = 0;
         secs_elapsed = nanosecs_elapsed * (1, 000, 000, 000);
          unsigned long long int hours_elapsed = 0;
