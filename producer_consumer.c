@@ -66,7 +66,7 @@ static int producer(void *data)
                 printk(KERN_INFO "leaving producer for_each_process");
                 break; // is only evaluated when a signal is received from down_interruptible
             }
-            if(kthread_should_stop()){
+            if(should_stop){
                 break;
             }
             printk(KERN_INFO "leaving producer for_each_process");
