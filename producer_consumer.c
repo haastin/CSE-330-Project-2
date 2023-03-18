@@ -153,7 +153,6 @@ static int consumer(void *data)
         up(&empty);      // signal empty to make empty + 1 since we just consumed a process from buffer
         unsigned long long int nanosecs_elapsed = 0;
         nanosecs_elapsed = ktime_get_ns() - temp->fetched_task->start_time;
-         printk(KERN_INFO "nanosecs elapsed: %d", nanosecs_elapsed);
         unsigned long long int secs_elapsed = 0;
         secs_elapsed = nanosecs_elapsed * (1, 000, 000, 000);
          unsigned long long int hours_elapsed = 0;
@@ -162,7 +161,7 @@ static int consumer(void *data)
         hours_elapsed = (secs_elapsed % 3600) / 60;
          unsigned long long int secs_elapsed_remaining = 0;
         secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
-
+         printk(KERN_INFO "nanosecs elapsed: %d", secs_elapsed_remaining);
         printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %llu:%llu:%llu\n", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
 
         if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
