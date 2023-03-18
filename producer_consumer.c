@@ -241,8 +241,8 @@ void exit_func(void)
     printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %d:%d:%d", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
     kfree(producer_thread);
     producer_thread = NULL;
-    kfree(consumer_threads);
-    consumer_threads == NULL;
+    //kfree(consumer_threads);
+    //consumer_threads == NULL;
 }
 
 module_init(init_func);
