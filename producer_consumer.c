@@ -239,8 +239,8 @@ void exit_func(void)
     uint64_t minutes_elapsed = (secs_elapsed % 3600) / 60;
     uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
     printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %d:%d:%d", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
-    kfree(producer_thread);
-    producer_thread = NULL;
+    //kfree(producer_thread);
+    //producer_thread = NULL;
     //kfree(consumer_threads);
     //consumer_threads == NULL;
 }
