@@ -174,8 +174,8 @@ int init_func(void)
 {
     printk(KERN_INFO "TESING S");
     sema_init(&buff_mutex, 1);
-    sema_init(&full, 0);
-    sema_init(&empty, buffSize);
+    sema_init(&full, 0); //spots filled
+    sema_init(&empty, buffSize); //spots left
     sema_init(&total_time_mutex, 1);
     should_stop = 0;
     printk(KERN_INFO "TESING S1");
@@ -221,10 +221,11 @@ void exit_func(void)
     if (consumer_threads != NULL)
     {
         printk(KERN_INFO "inside exit consumer deallocation");
-        int e = 0;
-        for(e; e<cons; e++){
+        int f;
+        for(f = 0; f<cons; f++){
             up(&full);
         }
+        int e;
         for (e = 0; e < cons; e++)
         {
             if(consumer_threads[e]){
