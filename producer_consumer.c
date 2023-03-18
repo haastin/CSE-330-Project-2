@@ -69,7 +69,7 @@ static int producer(void *data)
             if(should_stop){
                 break;
             }
-            printk(KERN_INFO "leaving producer for_each_process");
+            printk(KERN_INFO "made it past first producer semaphore");
             if (down_interruptible(&buff_mutex)) // acquire buffer
             {
                 break; // is only evaluated when a signal is received from down_interruptible
