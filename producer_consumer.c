@@ -70,7 +70,7 @@ static int producer(void *data)
                 break;
             }
             printk(KERN_INFO "leaving producer for_each_process");
-            if (kthread_should_stop() || down_interruptible(&buff_mutex)) // acquire buffer
+            if (down_interruptible(&buff_mutex)) // acquire buffer
             {
                 break; // is only evaluated when a signal is received from down_interruptible
             }
@@ -121,13 +121,16 @@ static int consumer(void *data)
     while (!kthread_should_stop())
     {
         printk(KERN_INFO "in consumer loop");
-        if (kthread_should_stop() || down_interruptible(&full)) // waits to acquire full; checks if anything is currently in buffer
+        if (down_interruptible(&full)) // waits to acquire full; checks if anything is currently in buffer
         {
             printk(KERN_INFO "kthread stopped worked for consumer");
             break; // is only evaluated when a signal is received from down_interruptinble
         }
+        if(should_stop){
+            break;
+        }
         printk(KERN_INFO "past full semaphore");
-        if (kthread_should_stop() || down_interruptible(&buff_mutex)) // acquire buffer
+        if (down_interruptible(&buff_mutex)) // acquire buffer
         {
             break; // is only evaluated when a signal is received from down_interruptible
         }
@@ -205,10 +208,10 @@ int init_func(void)
 void exit_func(void)
 {
     printk(KERN_INFO "reached exit func");
+    should_stop = 1;
     if (producer_thread != NULL)
     {
         printk(KERN_INFO "inside exit producer deallocation");
-        should_stop = 1;
         up(&empty); 
         kthread_stop(producer_thread);
         //i think having kfree here originally created a race condition
@@ -218,6 +221,9 @@ void exit_func(void)
     {
         printk(KERN_INFO "inside exit consumer deallocation");
         int e = 0;
+        for(e; e<cons; e++){
+            up(&full);
+        }
         for (e = 0; e < cons; e++)
         {
             if(consumer_threads[e]){
@@ -225,8 +231,6 @@ void exit_func(void)
             }
         }
         printk(KERN_INFO "stopped consumer threads");
-        kfree(consumer_threads);
-        consumer_threads == NULL;
     }
     printk(KERN_INFO "released consumer threads");
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
@@ -237,6 +241,8 @@ void exit_func(void)
     printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %d:%d:%d", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
     kfree(producer_thread);
     producer_thread = NULL;
+    kfree(consumer_threads);
+    consumer_threads == NULL;
 }
 
 module_init(init_func);
