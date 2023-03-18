@@ -210,9 +210,12 @@ void exit_func(void)
         printk(KERN_INFO "inside exit producer deallocation");
         should_stop = 1;
         up(&empty); 
-        kthread_stop(producer_thread);
-        //kfree(producer_thread);
-        //producer_thread == NULL;
+        int prod_thread_status = kthread_stop(producer_thread);
+        while(prod_thread_status){
+        }
+        kfree(producer_thread);
+        producer_thread = NULL;
+        //i think having kfree here originally created a race condition
     }
     printk(KERN_INFO "released producer thread");
     if (consumer_threads != NULL)
