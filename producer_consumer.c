@@ -86,6 +86,8 @@ static int producer(void *data)
             else
             { // head should already be allocated statically
             printk(KERN_INFO "start head IS null");
+                struct buff_node *new_buff_node = kmalloc(sizeof(struct buff_node), GFP_KERNEL);
+                head = new_buff_node;
                 head->fetched_task = task;
                 head->next = NULL;
                 head->prev = NULL;
