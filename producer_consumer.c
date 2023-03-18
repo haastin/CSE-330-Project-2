@@ -53,7 +53,7 @@ static int producer(void *data)
     for_each_process(task)
     {
         if(task)
-        printk(KERN_INFO "fetch task succesfully? 1");
+        printk(KERN_INFO "fetch task succesfully? fetched uid:%d, needed uid %d", task->cred->uid.val, uuid);
         else
         printk(KERN_INFO "fetched task is null");
         if (task->cred->uid.val == uuid) // need to check if the process fetched is one that our user owns
@@ -70,6 +70,7 @@ static int producer(void *data)
             // insert at tail, take from tail
             if (head != NULL)
             {
+                printk(KERN_INFO "start head not null");
                 struct buff_node *curr_tail = tail; // put process task_struct in buffer
                 struct buff_node *new_buff_node = kmalloc(sizeof(struct buff_node), GFP_KERNEL);
                 tail->next = new_buff_node;
@@ -80,9 +81,11 @@ static int producer(void *data)
                 tail->serial_no = tasks_so_far;
                 tail->fetched_task = task;
                 tasks_so_far++; // dont need a semaphore for this since only one will be accessing their critical section at a time
+                printk(KERN_INFO "end head not null");
             }
             else
             { // head should already be allocated statically
+            printk(KERN_INFO "start head IS null");
                 head->fetched_task = task;
                 head->next = NULL;
                 head->prev = NULL;
@@ -90,6 +93,7 @@ static int producer(void *data)
                 head->serial_no = tasks_so_far;
                 tasks_so_far++;
                 tail = head;
+                printk(KERN_INFO "end head IS null");
             }
             printk(KERN_INFO "%s Produced Item#-%d at buffer index: %d for PID:%d", current->comm, tail->serial_no, tail->index, task_pid_nr(task));
             // write details to kernel log, example print statement in the exit_function
