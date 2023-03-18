@@ -44,7 +44,7 @@ static struct semaphore full;
 static struct semaphore empty;
 static struct semaphore total_time_mutex;
 
-static bool should_stop;
+static int should_stop;
 
 static int tasks_so_far = 1;
 
@@ -63,8 +63,10 @@ static int producer(void *data)
 
             if (should_stop || down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
             {
+                printk(KERN_INFO "leaving producer for_each_process");
                 break; // is only evaluated when a signal is received from down_interruptible
             }
+            printk(KERN_INFO "leaving producer for_each_process");
             if (kthread_should_stop() || down_interruptible(&buff_mutex)) // acquire buffer
             {
                 break; // is only evaluated when a signal is received from down_interruptible
@@ -168,7 +170,7 @@ int init_func(void)
     sema_init(&full, 0);
     sema_init(&empty, buffSize);
     sema_init(&total_time_mutex, 1);
-    should_stop = false;
+    should_stop = 0;
     printk(KERN_INFO "TESING S1");
     int k = 0;
     for (k = 0; k < prod; k++)
@@ -203,7 +205,7 @@ void exit_func(void)
     if (producer_thread != NULL)
     {
         printk(KERN_INFO "inside exit producer deallocation");
-        should_stop = true;
+        should_stop = 1;
         up(&empty);
         //kthread_stop(producer_thread); 
         //kfree(producer_thread);
