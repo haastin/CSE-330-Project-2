@@ -215,6 +215,7 @@ void exit_func(void)
         printk(KERN_INFO "inside exit producer deallocation");
         up(&empty); 
         kthread_stop(producer_thread);
+        printk(KERN_INFO "finished exit producer");
         //i think having kfree here originally created a race condition
     }
     printk(KERN_INFO "released producer thread");
@@ -226,12 +227,12 @@ void exit_func(void)
             up(&full);
         }
         int e;
-        for (e = 0; e < cons; e++)
+        /*for (e = 0; e < cons; e++)
         {
             if(consumer_threads[e]){
                 kthread_stop(consumer_threads[e]);
             }
-        }
+        }*/
         printk(KERN_INFO "stopped consumer threads");
     }
     printk(KERN_INFO "released consumer threads");
