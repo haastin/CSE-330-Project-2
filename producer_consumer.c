@@ -210,9 +210,9 @@ void exit_func(void)
         printk(KERN_INFO "inside exit producer deallocation");
         should_stop = 1;
         up(&empty); 
-        kthread_stop(producer_thread);
-        kfree(producer_thread);
-        producer_thread == NULL;
+        //kthread_stop(producer_thread);
+        //kfree(producer_thread);
+        //producer_thread == NULL;
     }
     printk(KERN_INFO "released producer thread");
     if (consumer_threads != NULL)
