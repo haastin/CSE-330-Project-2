@@ -154,7 +154,7 @@ static int consumer(void *data)
         unsigned long long int nanosecs_elapsed = 0;
         nanosecs_elapsed = ktime_get_ns() - temp->fetched_task->start_time;
         unsigned long long int secs_elapsed = 0;
-        secs_elapsed = nanosecs_elapsed * (1000000000);
+        secs_elapsed = nanosecs_elapsed/(1000000000);
          unsigned long long int hours_elapsed = 0;
         hours_elapsed = secs_elapsed / 3600;
          unsigned long long int minutes_elapsed = 0;
