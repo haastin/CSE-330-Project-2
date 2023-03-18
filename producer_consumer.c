@@ -210,11 +210,7 @@ void exit_func(void)
         printk(KERN_INFO "inside exit producer deallocation");
         should_stop = 1;
         up(&empty); 
-        int prod_thread_status = kthread_stop(producer_thread);
-        while(prod_thread_status){
-        }
-        kfree(producer_thread);
-        producer_thread = NULL;
+        kthread_stop(producer_thread);
         //i think having kfree here originally created a race condition
     }
     printk(KERN_INFO "released producer thread");
@@ -239,6 +235,8 @@ void exit_func(void)
     uint64_t minutes_elapsed = (secs_elapsed % 3600) / 60;
     uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
     printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %d:%d:%d", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
+    kfree(producer_thread);
+    producer_thread = NULL;
 }
 
 module_init(init_func);
