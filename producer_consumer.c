@@ -44,6 +44,8 @@ static struct semaphore full;
 static struct semaphore empty;
 static struct semaphore total_time_mutex;
 
+static bool should_stop;
+
 static int tasks_so_far = 1;
 
 static int producer(void *data)
@@ -166,6 +168,7 @@ int init_func(void)
     sema_init(&full, 0);
     sema_init(&empty, buffSize);
     sema_init(&total_time_mutex, 1);
+    should_stop = false;
     printk(KERN_INFO "TESING S1");
     int k = 0;
     for (k = 0; k < prod; k++)
@@ -200,8 +203,9 @@ void exit_func(void)
     if (producer_thread != NULL)
     {
         printk(KERN_INFO "inside exit producer deallocation");
-        kthread_stop(producer_thread);
-        up(&empty); 
+        should_stop = true;
+        up(&empty);
+        kthread_stop(producer_thread); 
         kfree(producer_thread);
         producer_thread == NULL;
     }
