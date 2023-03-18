@@ -104,11 +104,12 @@ static int consumer(void *data)
     while (!kthread_should_stop())
     {
         printk(KERN_INFO "in consumer loop");
-        if (down_interruptible(&full) || !kthread_should_stop()) // waits to acquire full; checks if anything is currently in buffer
+        if (kthread_should_stop() || down_interruptible(&full)) // waits to acquire full; checks if anything is currently in buffer
         {
+            printk(KERN_INFO "kthread stopped worked for consumer");
             break; // is only evaluated when a signal is received from down_interruptinble
         }
-        if (down_interruptible(&buff_mutex) || !kthread_should_stop()) // acquire buffer
+        if (kthread_should_stop() || down_interruptible(&buff_mutex)) // acquire buffer
         {
             break; // is only evaluated when a signal is received from down_interruptible
         }
