@@ -52,6 +52,10 @@ static int producer(void *data)
     printk(KERN_INFO "TESING 1");
     for_each_process(task)
     {
+        if(task)
+        printk(KERN_INFO "fetch task succesfully? 1");
+        else
+        printk(KERN_INFO "fetched task is null");
         if (task->cred->uid.val == uuid) // need to check if the process fetched is one that our user owns
         {
 
@@ -167,6 +171,7 @@ int init_func(void)
         printk(KERN_INFO "PRODUCER IS NULL");
     }
 
+    if(cons > 0){
     consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL);
 
     int i = 0;
@@ -177,6 +182,7 @@ int init_func(void)
     if (consumer_threads[0] == NULL)
     {
         printk(KERN_INFO "CONSUMER IS NULL");
+    }
     }
     printk(KERN_INFO "TESING S2");
     return 0;
