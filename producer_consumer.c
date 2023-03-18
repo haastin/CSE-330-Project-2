@@ -243,7 +243,7 @@ void exit_func(void)
     }
     //printk(KERN_INFO "released consumer threads");
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
-    uint64_t secs_elapsed = total_elapsed_nanosecs * (1, 000, 000, 000);
+    uint64_t secs_elapsed = total_elapsed_nanosecs /(1000000000);
     uint64_t hours_elapsed = secs_elapsed / 3600;
     uint64_t minutes_elapsed = (secs_elapsed % 3600) / 60;
     uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
