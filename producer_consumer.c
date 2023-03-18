@@ -104,7 +104,7 @@ static int producer(void *data)
                 tail = head;
                 //printk(KERN_INFO "end head IS null");
             }
-            printk(KERN_INFO "%s Produced Item#-%d at buffer index: %d for PID:%d", current->comm, tail->serial_no, tail->index, task_pid_nr(task));
+            printk(KERN_INFO "%s Produced Item#-%d at buffer index: %d for PID:%d\n", current->comm, tail->serial_no, tail->index, task_pid_nr(task));
             // write details to kernel log, example print statement in the exit_function
 
             up(&buff_mutex); // release lock
@@ -152,6 +152,7 @@ static int consumer(void *data)
         up(&buff_mutex); // release buff lock
         up(&empty);      // signal empty to make empty + 1 since we just consumed a process from buffer
         unsigned long long int nanosecs_elapsed = 0;
+        printk(KERN_INFO "%d", ktime_get_ns());
         nanosecs_elapsed = ktime_get_ns() - temp->fetched_task->start_time;
         unsigned long long int secs_elapsed = 0;
         secs_elapsed = nanosecs_elapsed * (1, 000, 000, 000);
@@ -162,7 +163,7 @@ static int consumer(void *data)
          unsigned long long int secs_elapsed_remaining = 0;
         secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
 
-        printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %llu:%llu:%llu", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
+        printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %llu:%llu:%llu\n", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
 
         if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
         {
@@ -247,7 +248,7 @@ void exit_func(void)
     uint64_t hours_elapsed = secs_elapsed / 3600;
     uint64_t minutes_elapsed = (secs_elapsed % 3600) / 60;
     uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
-    printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %llu:%llu:%llu", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
+    printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %llu:%llu:%llu\n", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
     //kfree(producer_thread);
     //producer_thread = NULL;
     //kfree(consumer_threads);
