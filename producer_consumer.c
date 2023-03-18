@@ -109,6 +109,7 @@ static int consumer(void *data)
             printk(KERN_INFO "kthread stopped worked for consumer");
             break; // is only evaluated when a signal is received from down_interruptinble
         }
+        printk(KERN_INFO "past full semaphore");
         if (kthread_should_stop() || down_interruptible(&buff_mutex)) // acquire buffer
         {
             break; // is only evaluated when a signal is received from down_interruptible
@@ -186,6 +187,7 @@ void exit_func(void)
     printk(KERN_INFO "reached exit func");
     if (producer_thread != NULL)
     {
+        printk(KERN_INFO "inside exit producer deallocation");
         kthread_stop(producer_thread);
         kfree(producer_thread);
         producer_thread == NULL;
@@ -193,6 +195,7 @@ void exit_func(void)
     printk(KERN_INFO "released producer thread");
     if (consumer_threads != NULL)
     {
+        printk(KERN_INFO "inside exit consumer deallocation");
         int e = 0;
         for (e = 0; e < cons; e++)
         {
