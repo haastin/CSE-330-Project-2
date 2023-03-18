@@ -44,6 +44,8 @@ static struct semaphore full;
 static struct semaphore empty;
 static struct semaphore total_time_mutex;
 
+static bool producer_should_stop;
+
 static int tasks_so_far = 1;
 
 static int producer(void *data)
@@ -59,7 +61,7 @@ static int producer(void *data)
         if (task->cred->uid.val == uuid) // need to check if the process fetched is one that our user owns
         {
 
-            if (kthread_should_stop() || down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
+            if (producer_should_stop || down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
             {
                 break; // is only evaluated when a signal is received from down_interruptible
             }
@@ -166,6 +168,7 @@ int init_func(void)
     sema_init(&full, 0);
     sema_init(&empty, buffSize);
     sema_init(&total_time_mutex, 1);
+    producer_should_stop = false;
     printk(KERN_INFO "TESING S1");
     int k = 0;
     for (k = 0; k < prod; k++)
@@ -200,6 +203,7 @@ void exit_func(void)
     if (producer_thread != NULL)
     {
         printk(KERN_INFO "inside exit producer deallocation");
+        producer_should_stop = true;
         kthread_stop(producer_thread);
         kfree(producer_thread);
         producer_thread == NULL;
