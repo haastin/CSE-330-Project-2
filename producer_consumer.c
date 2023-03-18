@@ -214,7 +214,7 @@ void exit_func(void)
     {
         printk(KERN_INFO "inside exit producer deallocation");
         up(&empty); 
-        kthread_stop(producer_thread);
+        //kthread_stop(producer_thread);
         printk(KERN_INFO "finished exit producer");
         //i think having kfree here originally created a race condition
     }
