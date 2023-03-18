@@ -61,7 +61,7 @@ static int producer(void *data)
         if (task->cred->uid.val == uuid) // need to check if the process fetched is one that our user owns
         {
 
-            if (kthread_should_stop() || down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
+            if (should_stop || down_interruptible(&empty)) // acquire empty; checks if any open places left in buffer
             {
                 break; // is only evaluated when a signal is received from down_interruptible
             }
