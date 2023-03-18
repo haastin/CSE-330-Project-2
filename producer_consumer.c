@@ -154,14 +154,14 @@ static int consumer(void *data)
         unsigned long long int nanosecs_elapsed = 0;
         nanosecs_elapsed = ktime_get_ns() - temp->fetched_task->start_time;
         unsigned long long int secs_elapsed = 0;
-        secs_elapsed = nanosecs_elapsed * (1, 000, 000, 000);
+        secs_elapsed = nanosecs_elapsed * (1000000000);
          unsigned long long int hours_elapsed = 0;
         hours_elapsed = secs_elapsed / 3600;
          unsigned long long int minutes_elapsed = 0;
         hours_elapsed = (secs_elapsed % 3600) / 60;
          unsigned long long int secs_elapsed_remaining = 0;
         secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
-         printk(KERN_INFO "nanosecs elapsed: %d", secs_elapsed_remaining);
+         printk(KERN_INFO "secs elapsed: %d", secs_elapsed);
         printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %llu:%llu:%llu\n", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
 
         if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
