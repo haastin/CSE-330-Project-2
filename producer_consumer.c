@@ -161,7 +161,6 @@ static int consumer(void *data)
         hours_elapsed = (secs_elapsed % 3600) / 60;
          unsigned long long int secs_elapsed_remaining = 0;
         secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
-         printk(KERN_INFO "secs elapsed: %d", secs_elapsed);
         printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %llu:%llu:%llu\n", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
 
         if (down_interruptible(&total_time_mutex)) // get a lock for total_elpased_nanosecs
@@ -244,7 +243,6 @@ void exit_func(void)
     //printk(KERN_INFO "released consumer threads");
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
     unsigned long long int secs_elapsed = 0;
-    printk(KERN_INFO "total ns ela: %llu", total_elapsed_nanosecs);
     secs_elapsed = total_elapsed_nanosecs /(1000000000);
     unsigned long long int hours_elapsed = 0;
     hours_elapsed = secs_elapsed / 3600;
