@@ -141,13 +141,13 @@ static int consumer(void *data)
         { // shouldnt ever need this since we check this condition with a semaphore already
             new_tail->next = NULL;
             tail = new_tail;
-            kfree(temp);
+            //kfree(temp);
         }
         else
         {
             head = NULL;
             tail = head;
-            kfree(temp);
+            //kfree(temp);
         }
         up(&buff_mutex); // release buff lock
         up(&empty);      // signal empty to make empty + 1 since we just consumed a process from buffer
