@@ -243,10 +243,10 @@ void exit_func(void)
     }
     //printk(KERN_INFO "released consumer threads");
     // logic for implmenting nanoseconds to HH:MM:SS here, and fill in the rest below
-    uint64_t secs_elapsed = total_elapsed_nanosecs /(1000000000);
-    uint64_t hours_elapsed = secs_elapsed / 3600;
-    uint64_t minutes_elapsed = (secs_elapsed % 3600) / 60;
-    uint64_t secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
+    unsigned long long int secs_elapsed = total_elapsed_nanosecs /(1000000000);
+    unsigned long long int hours_elapsed = secs_elapsed / 3600;
+    unsigned long long int minutes_elapsed = (secs_elapsed % 3600) / 60;
+    unsigned long long int secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
     printk(KERN_INFO "The total elapsed time of all processes for uuid %d is %llu:%llu:%llu\n", uuid, hours_elapsed, minutes_elapsed, secs_elapsed_remaining);
     //kfree(producer_thread);
     //producer_thread = NULL;
