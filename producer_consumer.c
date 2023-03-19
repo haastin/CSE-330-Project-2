@@ -86,11 +86,7 @@ static int producer(void *data)
             //buffer, we just want to end the producer thread. Since we must signal the producer thread in order to awaken it,
             //we must stop it here because otherwise it would keep trying to put things in the buffer because the way it keeps 
             //track of if the buffer is full is through the semaphore we just signaled 
-            /*if(should_stop){
-                break;
-            }*/
-            if(kthread_should_stop()){
-                printk(KERN_INFO "TESTING");
+            if(should_stop){
                 break;
             }
 
@@ -173,9 +169,6 @@ static int consumer(void *data)
         //we consume processes from the tail of the linked list, so the linked list is really a stack
         struct buff_node *new_tail = tail->prev;
         
-        //program works fine without freeing our buff nodes, but I want it to be cleaner, so I'll try to fix it 
-        //on my own time
-
         //if the node we are removing is not the last in the buffer
         if (new_tail != NULL)
         { 
@@ -261,7 +254,6 @@ void exit_func(void)
 
     if (producer_thread != NULL)
     {
-        kthread_stop(producer_thread);
         up(&empty); //same logic i explained for the consumer thread but this is only used in the case of having no consumer threads
 
     }
