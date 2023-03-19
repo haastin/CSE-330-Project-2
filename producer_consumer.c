@@ -169,7 +169,7 @@ static int consumer(void *data)
         //we consume processes from the tail of the linked list, so the linked list is really a stack
         struct buff_node *new_tail = tail->prev;
         
-        kfree(tail);
+        //kfree(tail);
 
         //if the node we are removing is not the last in the buffer
         if (new_tail != NULL)
