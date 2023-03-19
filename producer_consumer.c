@@ -237,12 +237,10 @@ int init_func(void)
     //buffer size is variable so needs to be established at runtime
 
     if(cons > 0){ 
-    
+    //need to allocate memory for the consumer kthread array because as a double pointer it won't statically allocate
+    //the specific number of memory we need it to; not sure I fully understand how memory allocation works for kthreads
     consumer_threads = kmalloc(cons*sizeof(struct task_struct), GFP_KERNEL);
-    //we don't need to allocate memory for kthreads because process creation and management is handled by the kernel, aka
-    //in a normal program we don't allocate memory for the program itself, so it makes sense that even though these are threads
-    //and not processes that we wouldn't dynamically allocate memory for them (by dynamically allocating memory for them I mean
-    //literally doing kmalloc(sizeof (task_struct) ...) lol
+    
     int i;
     for (i = 0; i < cons; i++)
     {
