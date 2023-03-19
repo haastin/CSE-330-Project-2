@@ -169,7 +169,8 @@ static int consumer(void *data)
         //we consume processes from the tail of the linked list, so the linked list is really a stack
         struct buff_node *new_tail = tail->prev;
         
-        //kfree(tail);
+        //program works fine without freeing our buff nodes, but I want it to be cleaner, so I'll try to fix it 
+        //on my own time
 
         //if the node we are removing is not the last in the buffer
         if (new_tail != NULL)
@@ -234,9 +235,14 @@ int init_func(void)
     }
 
     //buffer size is variable so needs to be established at runtime
-    if(cons > 0){ 
-    //consumer_threads = kmalloc(cons * sizeof(struct task_struct), GFP_KERNEL); 
 
+    if(cons > 0){ 
+    
+    consumer_threads = kmalloc(cons*sizeof(struct task_struct), GFP_KERNEL);
+    //we don't need to allocate memory for kthreads because process creation and management is handled by the kernel, aka
+    //in a normal program we don't allocate memory for the program itself, so it makes sense that even though these are threads
+    //and not processes that we wouldn't dynamically allocate memory for them (by dynamically allocating memory for them I mean
+    //literally doing kmalloc(sizeof (task_struct) ...) lol
     int i;
     for (i = 0; i < cons; i++)
     {
