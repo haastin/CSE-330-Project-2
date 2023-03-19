@@ -98,6 +98,7 @@ static int producer(void *data)
             
             if (head != NULL)
             {
+                struct buff_node *curr_tail = tail;
                 struct buff_node *new_buff_node = kmalloc(sizeof(struct buff_node), GFP_KERNEL);
 
                 //we insert in our linked list at the tail
@@ -162,6 +163,9 @@ static int consumer(void *data)
             break; 
         }
 
+        //store our node that contains the process we will consume so we can release the buffer and then calculate its elapsed time
+        struct buff_node *temp = tail;
+
         //we consume processes from the tail of the linked list, so the linked list is really a stack
         struct buff_node *new_tail = tail->prev;
         
@@ -200,12 +204,12 @@ static int consumer(void *data)
          unsigned long long int secs_elapsed_remaining = 0;
         secs_elapsed_remaining = secs_elapsed - hours_elapsed * 3600 - minutes_elapsed * 60;
 
-        printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %llu:%llu:%llu\n", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); // operate on task_struct data here
+        printk(KERN_INFO "%s Consumed Item#-%d on buffer index:%d PID:%d Elapsed Time- %llu:%llu:%llu\n", current->comm, temp->serial_no, temp->index, task_pid_nr(temp->fetched_task), hours_elapsed, minutes_elapsed, secs_elapsed_remaining); 
 
         //add the fetched process' elapsed time to the total elpased time for all fetched processes
         if (down_interruptible(&total_time_mutex)) 
         {
-            break; /
+            break; 
         }
         total_elapsed_nanosecs += nanosecs_elapsed;  
 
