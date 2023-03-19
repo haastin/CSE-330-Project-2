@@ -11,10 +11,10 @@
 #include <linux/slab.h>
 
 //the parameters we pass into our kernel module at the time it is mounted (insmod)
-static int uuid = 0;
-static int buffSize = 0;
-static int prod = 0;
-static int cons = 0;
+static int uuid = 0; //the uid we want our fetched process to have
+static int buffSize = 0; //the capacity of the buffer
+static int prod = 0; //the amount of producer threads we will create
+static int cons = 0; //the amount of consmer threads we will create
 module_param(uuid, int, 0);
 module_param(buffSize, int, 0);
 module_param(prod, int, 0);
@@ -218,14 +218,14 @@ static int consumer(void *data)
 
 int init_func(void)
 {
-    sema_init(&buff_mutex, 1); //used to control access to the buffer
+    sema_init(&buff_mutex, 1); //used to control access to the buffer so that only one thread can accessing it at a time
     sema_init(&full, 0); //full tracks the number spots currently filled in the buffer
     sema_init(&empty, buffSize); //empty tracks the number of spots empty in the buffer
     sema_init(&total_time_mutex, 1); //use to control access to the total_elapsed_time var for multiple consumer threads
     
-    should_stop = 0;
+    should_stop = 0; //only used when we want to exit with rmmod, so should_stop is false (0) 
     
-    int k = 0;
+    int k;
     for (k = 0; k < prod; k++)
     {
         producer_thread = kthread_run(producer, NULL, "Producer-1");
@@ -235,7 +235,7 @@ int init_func(void)
 
     if(cons > 0){ 
     //need to allocate memory for the consumer kthread array because as a double pointer it won't statically allocate
-    //the specific number of memory we need it to; not sure I fully understand how memory allocation works for kthreads
+    //the specific number of memory we need it to
     consumer_threads = kmalloc(cons*sizeof(struct task_struct), GFP_KERNEL);
     
     int i;
@@ -274,7 +274,7 @@ void exit_func(void)
     //other implementation of this similar logic, so since its just 2x used, doing it seperately would just makes things more
     //complicated 
     unsigned long long int secs_elapsed = 0;
-    secs_elapsed = total_elapsed_nanosecs /(1000000000);
+    secs_elapsed = total_elapsed_nanosecs /(1000000000); //convert nanosecs to secs
     unsigned long long int hours_elapsed = 0;
     hours_elapsed = secs_elapsed / 3600;
     unsigned long long int minutes_elapsed = 0;
