@@ -86,7 +86,10 @@ static int producer(void *data)
             //buffer, we just want to end the producer thread. Since we must signal the producer thread in order to awaken it,
             //we must stop it here because otherwise it would keep trying to put things in the buffer because the way it keeps 
             //track of if the buffer is full is through the semaphore we just signaled 
-            if(should_stop){
+            /*if(should_stop){
+                break;
+            }*/
+            if(kthread_should_stop()){
                 break;
             }
 
@@ -257,6 +260,7 @@ void exit_func(void)
 
     if (producer_thread != NULL)
     {
+        kthread_stop(producer_thread);
         up(&empty); //same logic i explained for the consumer thread but this is only used in the case of having no consumer threads
 
     }
@@ -290,7 +294,6 @@ void exit_func(void)
     //our functions exit on their own, using kthread_stop would just cause a seg fault beceuase by the time kthread_stop would
     //be called the thread has already finished
 
-    //didnt end up using any thread stopping or freeing of memory. i do need to clear the buffnodes though
 }
 
 module_init(init_func);
