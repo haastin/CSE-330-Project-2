@@ -90,6 +90,7 @@ static int producer(void *data)
                 break;
             }*/
             if(kthread_should_stop()){
+                printk(KERN_INFO "TESTING");
                 break;
             }
 
